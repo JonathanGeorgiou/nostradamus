@@ -1,0 +1,45 @@
+version: "3"
+
+services:
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: jonathan@ac.uk
+      PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
+    ports:
+      - "5050:80"
+    secrets:
+      - pgadmin_password
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    depends_on:
+      - db
+
+
+  db:
+    container_name: postgres
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_USER: nostradamus
+      # POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nostradamus
+    volumes:
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - nostradamusdb:/var/lib/postgresql/data
+    secrets:
+      - postgres_password
+
+secrets:
+  pgadmin_password:
+    file: pgadmin_password.txt
+  postgres_password:
+    file: postgres_password.txt
+
+
+volumes:
+  pgadmin:
+  nostradamusdb:

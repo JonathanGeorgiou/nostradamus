@@ -1,0 +1,36 @@
+// Use DBML to define your database structure
+// Docs: https://www.dbml.org/docs
+
+Table player {
+  id integer [primary key]
+  username varchar
+  first_name varchar
+  last_name varchar
+  email varchar
+  is_active bool
+  points integer
+  created_at timestamp
+}
+
+Table fixture {
+  id integer [primary key]
+  home_team varchar
+  away_team varchar
+  home_score integer
+  away_score integer
+  result enum [note: '0: home win, 1: away win, 2: draw']
+}
+
+Table prediction {
+  id integer [primary key]
+  fixture_id integer
+  player_id integer
+  home_score integer
+  away_score integer
+  result enum
+}
+
+
+Ref: prediction.player_id - player.id
+Ref: prediction.fixture_id > fixture.id
+

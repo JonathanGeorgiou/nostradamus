@@ -1,13 +1,64 @@
-CREATE TABLE IF NOT EXISTS players(
-  id INT PRIMARY KEY,
-  first_name varchar(250) NOT NULL,
-  last_name varchar(250) NOT NULL,
-  email_address varchar(250),
-  favourite_team varchar(250)
+CREATE TABLE IF NOT EXISTS "player" (
+  "id" serial PRIMARY KEY,
+  "username" varchar,
+  "first_name" varchar,
+  "last_name" varchar,
+  "email" varchar,
+  "is_active" bool,
+  "points" integer,
+  "created_at" timestamp
 );
 
-INSERT INTO players(id, first_name, last_name, email_address, favourite_team) VALUES
-(1, 'Jonathan', 'Georgiou', 'jonathangeorgiou94@proton.me', 'Manchester United'),
-(2, 'George', 'Georgiou', 'pallouras64@hotmail.com', 'Manchester United'),
-(3, 'Nicolas', 'Georgiou', 'nicolasgoergiou04@gmail.com', 'Manchester United'),
-(4, 'Papi', 'Georgiou', 'kantopapi@outlook.com', 'Manchester United');
+CREATE TABLE IF NOT EXISTS "fixture" (
+  "id" serial PRIMARY KEY,
+  "home_team" varchar,
+  "away_team" varchar,
+  "home_score" integer,
+  "away_score" integer,
+  "result" integer
+);
+
+CREATE TABLE IF NOT EXISTS "prediction" (
+  "id" serial PRIMARY KEY,
+  "fixture_id" integer,
+  "player_id" integer,
+  "home_score" integer,
+  "away_score" integer,
+  "result" integer
+);
+
+CREATE TABLE IF NOT EXISTS "team" (
+  "id" serial PRIMARY KEY,
+  "full_name" varchar,
+  "short_name" varchar,
+  "three_letter_name" varchar
+);
+
+INSERT INTO TEAM (full_name, short_name, three_letter_name) VALUES
+('Arsenal', 'Arsenal', 'ARS'), 
+('Aston Villa', 'Villa', 'AVL'),
+('Bournemouth', 'Bournemouth', 'BOU'),
+('Brentford', 'Brentford', 'BRE'),
+('Brighton and Hove Albion', 'Brighton', 'BRI'),
+('Chelsea', 'Chelsea', 'CHL'),
+('Crystal Palace', 'Palace', 'CRY'),
+('Everton', 'Everton', 'EVE'),
+('Fulham', 'Fulham', 'FUL'),
+('Leeds United', 'Leeds', 'LEE'),
+('Leicester City', 'Leicester', 'LEI'),
+('Liverpool', 'Liverpool', 'LIV'),
+('Manchester City', 'Man City', 'MCY'),
+('Manchester United', 'Man United', 'MUN'),
+('Newcastle United', 'Newcastle', 'NEW'),
+('Nottingham Forest', 'Forest', 'NOT'),
+('Southampton', 'Southampton', 'SOU'),
+('Tottenham Hotspur', 'Spurs', 'TOT'),
+('West Ham United', 'West Ham', 'WHU'),
+('Wolverhampton Wanderers', 'Wolves', 'WOL');
+
+COMMENT ON COLUMN "fixture"."result" IS '0: home win, 1: away win, 2: draw';
+
+ALTER TABLE "player" ADD FOREIGN KEY ("id") REFERENCES "prediction" ("player_id");
+
+ALTER TABLE "prediction" ADD FOREIGN KEY ("fixture_id") REFERENCES "fixture" ("id");
+

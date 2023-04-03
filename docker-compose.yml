@@ -25,11 +25,10 @@ services:
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
       POSTGRES_USER: nostradamus
-      # POSTGRES_PASSWORD: postgres
       POSTGRES_DB: nostradamus
     volumes:
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - nostradamusdb:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
     secrets:
       - postgres_password
 
@@ -42,4 +41,3 @@ secrets:
 
 volumes:
   pgadmin:
-  nostradamusdb:

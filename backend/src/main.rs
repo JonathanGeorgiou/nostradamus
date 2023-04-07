@@ -2,14 +2,13 @@ use axum::{
     routing::get,
     Router,
 };
-// use diesel::prelude::*;
-// use diesel::pg::PgConnection;
-// use dotenvy::dotenv;
+use diesel::{PgConnection, Connection};
+use dotenvy::dotenv;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use  std::net::SocketAddr;
 
 mod models;
-mod schema;
+// mod schema;
 mod controllers;
 
 
@@ -22,20 +21,12 @@ async fn main() {
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
-    let db_url = std::env::var("DATABASE_URL").unwrap();
+    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
-    // set up connection pool
-    let manager = deadpool_diesel::postgres::Manager::new(db_url, deadpool_diesel::Runtime::Tokio1);
-    let pool = deadpool_diesel::postgres::Pool::builder(manager)
-        .build()
-        .unwrap();
+    establish_connection(db_url);
 
-    // build our application with some routes
     let app = Router::new()
-        .route("/", get(|| async {"hello world"}))
-        // .route("/player/list", get(list_players))
-        // .route("/player/create", post(create_player))
-        .with_state(pool);
+        .route("/", get(|| async {"hello world"}));
 
     // run it with hyper
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
@@ -44,5 +35,9 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
+}
 
+fn establish_connection(database_url: String)-> PgConnection {
+    dotenv().ok();
+    PgConnection::establish(&database_url).unwrap_or_else(|_| panic!("Error connecting to database {}", database_url))
 }

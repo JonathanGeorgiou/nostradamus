@@ -22,6 +22,7 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
     let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    dotenv().ok();
 
     establish_connection(db_url);
 
@@ -38,6 +39,5 @@ async fn main() {
 }
 
 fn establish_connection(database_url: String)-> PgConnection {
-    dotenv().ok();
     PgConnection::establish(&database_url).unwrap_or_else(|_| panic!("Error connecting to database {}", database_url))
 }

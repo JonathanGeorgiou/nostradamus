@@ -1,71 +1,43 @@
-use handler::list_players_by_team_handler;
-use mobc::{Connection, Pool};
-use mobc_postgres::{tokio_postgres, PgConnectionManager};
-use std::convert::Infallible;
-use tokio_postgres::NoTls;
-use warp::{
-    http::{header, Method},
-    Filter, Rejection,
+use axum::{
+    routing::get,
+    Router,
 };
+use diesel::{PgConnection, Connection};
+use dotenvy::dotenv;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use  std::net::SocketAddr;
 
-mod handler;
-mod error;
-mod  db;
+mod models;
+// mod schema;
+mod controllers;
 
-type Result<T> = std::result::Result<T, Rejection>;
-type DBCon = Connection<PgConnectionManager<NoTls>>;
-type DBPool = Pool<PgConnectionManager<NoTls>>;
 
 #[tokio::main]
 async fn main() {
-    let db_pool = db::create_pool().expect("database pool can be created");
-
-    db::init_db(&db_pool)
-        .await
-        .expect("database can be initialized");
-
-    let player = warp::path!("player");
-
-    let player_routes = player
-        .and(warp::get())
-        .and(warp::path::param())
-        .and(with_db(db_pool.clone()))
-        .and_then(handler::list_players_by_team_handler)
-        
-        
-
-
-
-
-
-        .or(player
-            .and(warp::post())
-            .and(warp::body::json())
-            .and(with_db(db_pool.clone()))
-        );
-
-    let routes = player_routes
-        .or(player_routes)
-        .recover(error::handle_rejection)
+    tracing_subscriber::registry()
         .with(
-            warp::cors()
-                .allow_credentials(true)
-                .allow_methods(&[
-                    Method::OPTIONS,
-                    Method::GET,
-                    Method::POST,
-                    Method::DELETE,
-                    Method::PUT,
-                ])
-                .allow_headers(vec![header::CONTENT_TYPE, header::ACCEPT])
-                .expose_headers(vec![header::LINK])
-                .max_age(300)
-                .allow_any_origin(),
-        );
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "backend=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    dotenv().ok();
 
-    warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
+    establish_connection(db_url);
+
+    let app = Router::new()
+        .route("/", get(|| async {"hello world"}));
+
+    // run it with hyper
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
+    tracing::debug!("listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 }
 
-fn with_db(db_pool: DBPool) -> impl Filter<Extract = (DBPool,), Error = Infallible> + Clone {
-    warp::any().map(move || db_pool.clone())
+fn establish_connection(database_url: String)-> PgConnection {
+    PgConnection::establish(&database_url).unwrap_or_else(|_| panic!("Error connecting to database {}", database_url))
 }

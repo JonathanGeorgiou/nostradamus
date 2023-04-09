@@ -1,16 +1,16 @@
 use axum::{
     routing::get,
-    Router,
+    Router, Extension,
 };
-use diesel::{PgConnection, Connection};
 use dotenvy::dotenv;
+use sqlx::postgres::PgPoolOptions;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use  std::net::SocketAddr;
 
 mod models;
-// mod schema;
+mod schema;
 mod controllers;
-
+mod error;
 
 #[tokio::main]
 async fn main() {
@@ -24,10 +24,16 @@ async fn main() {
     let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     dotenv().ok();
 
-    establish_connection(db_url);
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&db_url)
+        .await
+        .expect("unable to connect to database");
 
     let app = Router::new()
-        .route("/", get(|| async {"hello world"}));
+        .route("/", get(|| async {"hello world"}))
+        // .route("/api/players", get(controllers::))
+        .layer(Extension(pool));
 
     // run it with hyper
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
@@ -38,6 +44,3 @@ async fn main() {
         .unwrap();
 }
 
-fn establish_connection(database_url: String)-> PgConnection {
-    PgConnection::establish(&database_url).unwrap_or_else(|_| panic!("Error connecting to database {}", database_url))
-}

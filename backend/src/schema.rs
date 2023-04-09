@@ -20,7 +20,6 @@ diesel::table! {
         email -> Nullable<Varchar>,
         is_active -> Nullable<Bool>,
         points -> Nullable<Int4>,
-        created_at -> Nullable<Timestamp>,
     }
 }
 

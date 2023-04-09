@@ -5,9 +5,10 @@
 
 
 use chrono::NaiveDateTime;
-use diesel::Queryable;
+use serde::{Serialize, Deserialize};
+use sqlx::FromRow;
 
-#[derive(Queryable, Debug)]
+#[derive(Serialize, Deserialize, FromRow, Debug)]
 pub struct Fixture {
     pub id: i32,
     pub home_team: Option<String>,
@@ -17,7 +18,7 @@ pub struct Fixture {
     pub result: Option<i32>,
 }
 
-#[derive(Queryable, Debug)]
+#[derive(Deserialize, FromRow, Debug)]
 pub struct Player {
     pub id: i32,
     pub username: Option<String>,
@@ -26,10 +27,9 @@ pub struct Player {
     pub email: Option<String>,
     pub is_active: Option<bool>,
     pub points: Option<i32>,
-    pub created_at: Option<NaiveDateTime>,
 }
 
-#[derive(Queryable, Debug)]
+#[derive(Serialize, Deserialize, FromRow, Debug)]
 pub struct Prediction {
     pub id: i32,
     pub fixture_id: Option<i32>,
@@ -39,7 +39,7 @@ pub struct Prediction {
     pub result: Option<i32>,
 }
 
-#[derive(Queryable, Debug)]
+#[derive(Serialize, Deserialize, FromRow, Debug)]
 pub struct Team {
     pub id: i32,
     pub full_name: Option<String>,

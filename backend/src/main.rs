@@ -32,10 +32,9 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(|| async {"hello world"}))
-        // .route("/api/players", get(controllers::))
-        .layer(Extension(pool));
+        .route("/api/players", get(controllers::player::list_players(&pool)))
+        .with_state(pool);
 
-    // run it with hyper
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
@@ -43,4 +42,5 @@ async fn main() {
         .await
         .unwrap();
 }
+
 

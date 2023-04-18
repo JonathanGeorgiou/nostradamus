@@ -1,3 +1,4 @@
+use axum::{Router, routing::MethodRouter};
 use serde_json::to_string_pretty;
 use sqlx::{PgPool, query_as, types::Json};
 
@@ -9,23 +10,17 @@ struct Row {
     player: Json<Player>,
 }
 
-pub async fn list_players(pool: &PgPool) -> anyhow::Result<()> {
-    let rows = query_as!(
-    Row,
-        r#"
-        SELECT id, player as "player: Json<Player>"
-        FROM PLAYER
-        "#
-    ).fetch_all(pool)
-        .await?;
+pub async fn list_players(pool: &PgPool) -> Vec<Player> {
+    let result: Vec<Player> = query_as!(
+    Player,
+        "select * from player",
+).fetch_all(&pool).await.expect("unable to fetch players");
+    return result
 
-    for row in rows {
-        println!(
-        "{}: {}",
-            row.id,
-            &to_string_pretty(&row.player)?
-        );
-    }
-
-    Ok(())
 }
+
+
+fn route(path: &str, method_router: MethodRouter<()>) -> Router {
+    Router::new().route(path, method_router)
+}
+
